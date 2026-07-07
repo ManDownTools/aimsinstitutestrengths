@@ -45,37 +45,57 @@ export default function InviteForm({
     e.preventDefault();
     setStatus("sending");
     setError(null);
-    const res = await fetch("/api/invite", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        ...form,
-        reports_to: form.reports_to || null,
-        position_start_date: form.position_start_date || null,
-        hire_date: form.hire_date || null,
-        company_id: form.company_id || companyId,
-      }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
+    try {
+      const res = await fetch("/api/invite", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          reports_to: form.reports_to || null,
+          position_start_date: form.position_start_date || null,
+          hire_date: form.hire_date || null,
+          company_id: form.company_id || companyId,
+        }),
+      });
+      // Parse JSON if possible, but tolerate an HTML timeout page or an
+      // empty body so we always surface a real error instead of hanging.
+      const raw = await res.text();
+      let data: { error?: string } = {};
+      try {
+        data = raw ? (JSON.parse(raw) as { error?: string }) : {};
+      } catch {
+        // Non-JSON body — usually a Vercel timeout page or upstream 502.
+      }
+      if (!res.ok) {
+        setStatus("error");
+        setError(
+          data.error ??
+            `The invite failed (${res.status}). Check Vercel logs for /api/invite.`,
+        );
+        return;
+      }
+      setStatus("sent");
+      setForm({
+        email: "",
+        first_name: "",
+        last_name: "",
+        position: "",
+        reports_to: "",
+        position_start_date: "",
+        hire_date: "",
+        role: "team_member",
+        company_id: companyId ?? "",
+      });
+      router.refresh();
+      setTimeout(() => setStatus("idle"), 2000);
+    } catch (err) {
       setStatus("error");
-      setError(data.error ?? "Something went wrong.");
-      return;
+      setError(
+        err instanceof Error
+          ? `Couldn't reach the invite endpoint: ${err.message}`
+          : "Couldn't reach the invite endpoint.",
+      );
     }
-    setStatus("sent");
-    setForm({
-      email: "",
-      first_name: "",
-      last_name: "",
-      position: "",
-      reports_to: "",
-      position_start_date: "",
-      hire_date: "",
-      role: "team_member",
-      company_id: companyId ?? "",
-    });
-    router.refresh();
-    setTimeout(() => setStatus("idle"), 2000);
   }
 
   return (
