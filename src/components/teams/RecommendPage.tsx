@@ -441,11 +441,12 @@ export default function RecommendPage({
             energy. It builds a roster that covers the full arc of this
             mission, from generating ideas to aligning people to driving the
             work to done. It leans hardest on strengths where capability and
-            energy come together, counts energy that's still building skill
-            as developing rather than proven, and won't build a team that
-            depends on work someone is good at but that drains them. It also
-            tells you what the team will still lack, because every real team
-            lacks something.
+            energy come together. When someone has energy for something but
+            hasn't fully developed the skill yet, it counts that as promise,
+            not proven strength. It won't build a team that depends on work
+            someone is good at but that drains them. It also names where the
+            team has the most room to grow, because every real team has
+            somewhere to develop into.
           </p>
         </div>
 
