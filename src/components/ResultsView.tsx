@@ -12,10 +12,12 @@ export default function ResultsView({
   firstName,
   results,
   showCoachingLink,
+  banner,
 }: {
   firstName: string;
   results: { profile: ResultsProfile; summary: string };
   showCoachingLink: boolean;
+  banner?: React.ReactNode;
 }) {
   const { profile, summary } = results;
   const dimensionOrder: Dimension[] = [
@@ -68,6 +70,8 @@ export default function ResultsView({
           )}
         </div>
       </section>
+
+      {banner}
 
       <section className="card stack-3">
         <h2 className="chartreuse-underline">{firstName}, at a glance</h2>
