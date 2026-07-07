@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import PasswordInput from "@/components/PasswordInput";
+import { createBrowserSupabase } from "@/lib/supabase/client";
 
 const MIN_LENGTH = 8;
 
@@ -46,6 +47,27 @@ export default function SetPasswordForm({
           "We couldn't save your password. Try again in a moment.",
       );
       return;
+    }
+
+    // Password change through the admin API invalidates the current session,
+    // so sign in fresh with the new password before we navigate away.
+    const { email: signInEmail } = (await res
+      .json()
+      .catch(() => ({ email: null }))) as { email: string | null };
+    const effectiveEmail = email ?? signInEmail;
+    if (effectiveEmail) {
+      const supabase = createBrowserSupabase();
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email: effectiveEmail,
+        password,
+      });
+      if (signInErr) {
+        setStatus("error");
+        setError(
+          "Password saved, but couldn't sign you in automatically. Try the login page.",
+        );
+        return;
+      }
     }
     router.replace("/");
     router.refresh();
