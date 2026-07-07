@@ -1,4 +1,3 @@
-import { Fragment } from "react";
 import Link from "next/link";
 import InviteForm from "./InviteForm";
 import ResendInviteButton from "./ResendInviteButton";
@@ -6,6 +5,7 @@ import DeletePersonButton from "./DeletePersonButton";
 import CompanyStructure from "./CompanyStructure";
 import EditProfileButton from "./EditProfileButton";
 import GenerateTeamInsightsIfMissing from "./GenerateTeamInsightsIfMissing";
+import TeamGrid from "./TeamGrid";
 import {
   DIMENSION_LABELS,
   SUB_STRENGTH_LABELS,
@@ -287,95 +287,6 @@ export default async function AdminDashboard({
           allowCompanyAdmin={allowCompanyAdmin}
         />
       </section>
-    </div>
-  );
-}
-
-function TeamGrid({ people }: { people: Row[] }) {
-  const completed = people.filter((p) => p.results_profile);
-  if (completed.length === 0) {
-    return (
-      <p className="faint" style={{ margin: 0 }}>
-        No completed assessments yet. Once people finish, their energy shows up here.
-      </p>
-    );
-  }
-  const subOrder = Object.keys(SUB_STRENGTH_LABELS);
-  const dimOrder: Dimension[] = ["thinking", "influence", "execution", "relating"];
-
-  return (
-    <div style={{ overflowX: "auto" }}>
-      <table className="table" style={{ minWidth: 600 }}>
-        <thead>
-          <tr>
-            <th style={{ minWidth: 180 }}>Sub-strength</th>
-            {completed.map((p) => (
-              <th
-                key={p.id}
-                style={{
-                  writingMode: "vertical-rl",
-                  transform: "rotate(180deg)",
-                  padding: 8,
-                }}
-              >
-                {p.first_name}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {dimOrder.map((d) => (
-            <Fragment key={d}>
-              <tr>
-                <td
-                  colSpan={completed.length + 1}
-                  className="subhead"
-                  style={{ background: "var(--aims-navy-tint)" }}
-                >
-                  {DIMENSION_LABELS[d]}
-                </td>
-              </tr>
-              {subOrder
-                .filter((sub) => {
-                  const someone = completed.find((p) =>
-                    p.results_profile?.sub_strengths.find(
-                      (s) => s.sub_strength === sub && s.dimension === d,
-                    ),
-                  );
-                  return !!someone;
-                })
-                .map((sub) => (
-                  <tr key={`${d}-${sub}`}>
-                    <td>{SUB_STRENGTH_LABELS[sub]}</td>
-                    {completed.map((p) => {
-                      const s = p.results_profile?.sub_strengths.find(
-                        (x) => x.sub_strength === sub,
-                      );
-                      const energy = s?.energy ?? 0;
-                      const pct = energy === 0 ? 0 : (energy / 5) * 100;
-                      return (
-                        <td
-                          key={p.id}
-                          className="num"
-                          style={{
-                            background: `color-mix(in srgb, var(--aims-sky) ${pct}%, var(--surface))`,
-                            width: 42,
-                          }}
-                          title={`${p.first_name} — Competence ${s?.competence ?? "-"}, Energy ${s?.energy ?? "-"}`}
-                        >
-                          {s ? energy : "—"}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-            </Fragment>
-          ))}
-        </tbody>
-      </table>
-      <p className="caption" style={{ marginTop: 8 }}>
-        Cell shade indicates energy. Hover a cell for the competence and energy pair.
-      </p>
     </div>
   );
 }
