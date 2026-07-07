@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+.env
+.env.local
+.env.production.local
+.env.development.local
+.DS_Store
+*.log
+.vercel
+.claude/
+.npm-cache/
+tsconfig.tsbuildinfo
+Complete branding system.zip
+.gitignore copy
