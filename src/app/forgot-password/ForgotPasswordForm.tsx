@@ -21,9 +21,11 @@ export default function ForgotPasswordForm() {
   if (status === "sent") {
     return (
       <div className="stack-3">
-        <div className="chip chip-primary">Check your email</div>
+        <div className="subhead">Check your email</div>
         <p>
-          If <strong>{email}</strong> is on file, we've sent a link to set a new password. It'll expire shortly, so open it on the device you'd like to use.
+          If <strong>{email}</strong> is on file, we've sent a link to set a new
+          password. It'll expire shortly, so open it on the device you'd like
+          to use.
         </p>
       </div>
     );
@@ -31,13 +33,13 @@ export default function ForgotPasswordForm() {
 
   return (
     <form onSubmit={onSubmit} className="stack-4">
-      <div className="field">
-        <label htmlFor="email">Email</label>
+      <div className="field-modern">
+        <label htmlFor="fp-email">Email</label>
         <input
-          id="email"
+          id="fp-email"
           type="email"
           required
-          className="input"
+          className="input-lg"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@company.com"
@@ -46,7 +48,8 @@ export default function ForgotPasswordForm() {
       </div>
       <button
         type="submit"
-        className="btn btn-primary lg"
+        className="btn-hero"
+        style={{ width: "100%" }}
         disabled={status === "sending"}
       >
         {status === "sending" ? "Sending link..." : "Send reset link"}
