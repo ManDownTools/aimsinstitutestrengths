@@ -41,6 +41,17 @@ export default function SetPasswordAuthGate() {
         return;
       }
 
+      const hasInviteParams = !!(code || (accessToken && refreshToken));
+
+      // If we're handling an invite/recovery link, sign out any existing
+      // session first. Otherwise an admin who clicks their own invite link
+      // while signed in would keep their admin session, and the server
+      // render would show the admin's email/user — leading to the wrong
+      // account being updated.
+      if (hasInviteParams) {
+        await supabase.auth.signOut({ scope: "local" });
+      }
+
       // PKCE flow: exchange the code for a session.
       if (code) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
@@ -50,10 +61,9 @@ export default function SetPasswordAuthGate() {
           setMessage(error.message);
           return;
         }
-        // Clean the URL and reload the server view.
-        window.history.replaceState({}, "", window.location.pathname);
-        setStatus("recovered");
-        router.refresh();
+        // Full reload so the server re-renders /set-password against the
+        // freshly-established session (correct email, correct user id).
+        window.location.replace("/set-password");
         return;
       }
 
@@ -69,9 +79,7 @@ export default function SetPasswordAuthGate() {
           setMessage(error.message);
           return;
         }
-        window.history.replaceState({}, "", window.location.pathname);
-        setStatus("recovered");
-        router.refresh();
+        window.location.replace("/set-password");
         return;
       }
 
