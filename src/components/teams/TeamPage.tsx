@@ -611,7 +611,7 @@ function EvaluationSection({
         signals.orientation_note !== "balanced" ||
         signals.duplications.length > 0) && (
         <div className="stack-3">
-          <div className="subhead">Signals worth naming</div>
+          <div className="subhead">Important Signals</div>
           <div className="stack-2">
             {soleHolders.length > 0 && (
               <ChipRow
@@ -676,13 +676,15 @@ function EvaluationSection({
 
       <div className="stack-3">
         <div className="spread" style={{ flexWrap: "wrap", gap: 8 }}>
-          <div className="subhead">The read</div>
+          <div className="subhead">Team Insights</div>
           <div className="row" style={{ gap: 8, alignItems: "center" }}>
             {narrativeState === "pending" && (
-              <span className="caption">Roster changed. Rebuilding shortly...</span>
+              <span className="caption">
+                Roster changed. Rebuilding shortly...
+              </span>
             )}
             {narrativeState === "generating" && (
-              <span className="caption">Rebuilding the read...</span>
+              <span className="caption">Rebuilding insights...</span>
             )}
             {narrativeState === "idle" && currentHashMatches && narrative && (
               <span className="caption">Up to date</span>
@@ -699,10 +701,13 @@ function EvaluationSection({
         </div>
         {narrativeError && <div className="field-error">{narrativeError}</div>}
         {narrative ? (
-          <NarrativeParagraphs text={narrative} />
+          <NarrativeParagraphs
+            text={narrative}
+            highlights={buildHighlights(eligibleById)}
+          />
         ) : (
           <p className="muted" style={{ margin: 0 }}>
-            The read appears here after the roster settles.
+            Team insights appear here after the roster settles.
           </p>
         )}
       </div>
@@ -738,7 +743,13 @@ function ChipRow({
   );
 }
 
-function NarrativeParagraphs({ text }: { text: string }) {
+function NarrativeParagraphs({
+  text,
+  highlights,
+}: {
+  text: string;
+  highlights: string[];
+}) {
   const paragraphs = text
     .replace(/\\n/g, "\n")
     .split(/\n+/)
@@ -748,10 +759,46 @@ function NarrativeParagraphs({ text }: { text: string }) {
     <div style={{ lineHeight: 1.7 }}>
       {paragraphs.map((p, i) => (
         <p key={i} style={{ margin: i === 0 ? 0 : "1.5em 0 0" }}>
-          {p}
+          {boldMatches(p, highlights)}
         </p>
       ))}
     </div>
+  );
+}
+
+// Wraps every occurrence of a known name / sub-strength / dimension label in
+// <strong>. Match is case-insensitive; original casing is preserved. Longer
+// keywords match first so full names win over first names.
+function boldMatches(text: string, keywords: string[]): React.ReactNode[] {
+  const cleaned = keywords.filter((k) => k && k.trim().length > 0);
+  if (cleaned.length === 0) return [text];
+  const escaped = cleaned
+    .slice()
+    .sort((a, b) => b.length - a.length)
+    .map((k) => k.replace(/[-\\/\\^$*+?.()|[\]{}]/g, "\\$&"));
+  const re = new RegExp(`(${escaped.join("|")})`, "gi");
+  const parts = text.split(re);
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i}>{part}</strong> : part,
+  );
+}
+
+// Names (first + full) plus every sub-strength and dimension label.
+function buildHighlights(
+  eligibleById: Map<string, EligiblePerson>,
+): string[] {
+  const names: string[] = [];
+  for (const p of eligibleById.values()) {
+    const full = `${p.first_name} ${p.last_name}`.trim();
+    if (full && full !== p.first_name) names.push(full);
+    if (p.first_name) names.push(p.first_name);
+  }
+  return Array.from(
+    new Set([
+      ...names,
+      ...Object.values(SUB_STRENGTH_LABELS),
+      ...Object.values(DIMENSION_LABELS),
+    ]),
   );
 }
 
