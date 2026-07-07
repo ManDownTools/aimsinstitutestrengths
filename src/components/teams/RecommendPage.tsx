@@ -74,6 +74,7 @@ export default function RecommendPage({
   const [missionNotes, setMissionNotes] = useState("");
   const [targetSize, setTargetSize] = useState(4);
   const [pinnedIds, setPinnedIds] = useState<string[]>([]);
+  const [pinnedFilter, setPinnedFilter] = useState("");
 
   // ----- Recommendation state -----
   const [proposal, setProposal] = useState<{
@@ -274,12 +275,32 @@ export default function RecommendPage({
 
   const rosterIds = new Set(proposal?.roster.map((r) => r.profile_id) ?? []);
 
+  const pinnedFilterQuery = pinnedFilter.trim().toLowerCase();
+  const visiblePinnedCandidates =
+    pinnedFilterQuery.length > 0
+      ? completedEligible.filter((p) =>
+          `${p.first_name} ${p.last_name}`
+            .toLowerCase()
+            .includes(pinnedFilterQuery),
+        )
+      : completedEligible;
+
   return (
     <div className="stack-5">
-      <section className="card stack-3">
-        <div className="card-header">
-          <h2>What's this team for?</h2>
+      <section
+        className="card"
+        style={{
+          padding: 40,
+          display: "flex",
+          flexDirection: "column",
+          gap: 32,
+        }}
+      >
+        <div className="card-header" style={{ marginBottom: 0 }}>
+          <h2>The mission</h2>
         </div>
+
+        {/* Section 1: Team name + Company */}
         <div className="form-grid form-grid-2">
           <label className="stack-1">
             <span className="subhead">Team name</span>
@@ -311,6 +332,10 @@ export default function RecommendPage({
               </select>
             </label>
           )}
+        </div>
+
+        {/* Section 2: Mission + Target size */}
+        <div className="form-grid form-grid-2">
           <label className="stack-1">
             <span className="subhead">Mission</span>
             <select
@@ -320,7 +345,7 @@ export default function RecommendPage({
             >
               {MISSION_ORDER.map((m) => (
                 <option key={m} value={m}>
-                  {MISSION_LABELS[m]} — {MISSION_BLURBS[m]}
+                  {MISSION_LABELS[m]}. {MISSION_BLURBS[m]}
                 </option>
               ))}
             </select>
@@ -337,6 +362,8 @@ export default function RecommendPage({
             />
           </label>
         </div>
+
+        {/* Section 3: Mission notes */}
         <label className="stack-1">
           <span className="subhead">Mission notes (optional)</span>
           <textarea
@@ -347,35 +374,84 @@ export default function RecommendPage({
             placeholder="Anything specific about the work this team is being formed for."
           />
         </label>
+
+        {/* Section 4: Must-include people, in its own sand-toned group */}
         <div className="stack-2">
           <div className="subhead">Must-include people (optional)</div>
           <p className="caption" style={{ margin: 0 }}>
             Pinned people are always on the roster. The system fills the rest.
           </p>
-          <div className="row-wrap">
-            {completedEligible.length === 0 && (
-              <span className="muted">
-                Nobody in this company has completed the assessment yet.
-              </span>
+          <div
+            style={{
+              background: "var(--aims-sand)",
+              borderRadius: 12,
+              padding: 16,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+            }}
+          >
+            {completedEligible.length > 10 && (
+              <input
+                type="text"
+                className="input"
+                placeholder="Filter by name"
+                value={pinnedFilter}
+                onChange={(e) => setPinnedFilter(e.target.value)}
+                style={{ maxWidth: 320 }}
+              />
             )}
-            {completedEligible.map((p) => {
-              const pinned = pinnedIds.includes(p.id);
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => togglePin(p.id)}
-                  className={`chip ${pinned ? "chip-primary" : "chip-muted"}`}
-                  title={p.position ?? ""}
-                  style={{ cursor: "pointer" }}
-                >
-                  {p.first_name} {p.last_name}
-                </button>
-              );
-            })}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              {completedEligible.length === 0 && (
+                <span className="muted">
+                  Nobody in this company has completed the assessment yet.
+                </span>
+              )}
+              {completedEligible.length > 0 &&
+                visiblePinnedCandidates.length === 0 && (
+                  <span className="muted">
+                    No one matches that filter.
+                  </span>
+                )}
+              {visiblePinnedCandidates.map((p) => {
+                const pinned = pinnedIds.includes(p.id);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => togglePin(p.id)}
+                    className={`chip ${pinned ? "chip-primary" : "chip-muted"}`}
+                    title={p.position ?? ""}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {p.first_name} {p.last_name}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
+
+        {/* Section 5: Explainer block */}
+        <div className="stack-2">
+          <div className="subhead">How the recommendation works</div>
+          <p className="muted" style={{ margin: 0 }}>
+            The recommendation reads each person's assessment, which measures
+            two things separately: what they're good at and what gives them
+            energy. It builds a roster that covers the full arc of this
+            mission, from generating ideas to aligning people to driving the
+            work to done. It leans hardest on strengths where capability and
+            energy come together, counts energy that's still building skill
+            as developing rather than proven, and won't build a team that
+            depends on work someone is good at but that drains them. It also
+            tells you what the team will still lack, because every real team
+            lacks something.
+          </p>
+        </div>
+
         {runError && <div className="field-error">{runError}</div>}
+
+        {/* Section 6: Submit */}
         <div>
           <button
             type="button"
@@ -404,7 +480,7 @@ export default function RecommendPage({
             </div>
             <p className="caption" style={{ margin: 0 }}>
               One line per person on why they're on this roster. Swap or remove
-              anyone — the read updates when you're settled.
+              anyone. The read updates when you're settled.
             </p>
             <div className="stack-3">
               {proposal.roster.map((r) => {

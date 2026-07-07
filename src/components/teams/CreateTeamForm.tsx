@@ -96,7 +96,7 @@ export default function CreateTeamForm({
         >
           {MISSION_ORDER.map((m) => (
             <option key={m} value={m}>
-              {MISSION_LABELS[m]} — {MISSION_BLURBS[m]}
+              {MISSION_LABELS[m]}. {MISSION_BLURBS[m]}
             </option>
           ))}
         </select>

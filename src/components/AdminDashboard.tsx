@@ -122,7 +122,7 @@ export default async function AdminDashboard({
     .filter((p) => p.invite_status === "active")
     .map((p) => ({
       id: p.id,
-      label: `${p.first_name} ${p.last_name}${p.position ? ` — ${p.position}` : ""}`,
+      label: `${p.first_name} ${p.last_name}${p.position ? ` · ${p.position}` : ""}`,
     }));
 
   const activeCount = peopleList.filter((p) => p.invite_status === "active").length;

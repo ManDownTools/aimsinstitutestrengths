@@ -227,7 +227,7 @@ export default function EditProfileModal({
                   {ctx.roster.map((opt) => (
                     <option key={opt.id} value={opt.id}>
                       {opt.first_name} {opt.last_name}
-                      {opt.position ? ` — ${opt.position}` : ""}
+                      {opt.position ? ` · ${opt.position}` : ""}
                     </option>
                   ))}
                 </select>

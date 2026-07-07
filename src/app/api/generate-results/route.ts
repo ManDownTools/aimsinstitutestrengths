@@ -38,8 +38,8 @@ The "profile" key must exactly match this shape (fill in the values):
 }
 
 Rules for scoring and interpretation:
-- Dimension averages already provided are correct — copy them into "dimensions" verbatim.
-- Sub-strength flags are already computed — copy them into "sub_strengths" verbatim.
+- Dimension averages already provided are correct. Copy them into "dimensions" verbatim.
+- Sub-strength flags are already computed. Copy them into "sub_strengths" verbatim.
 - Never collapse competence and energy into a single number.
 - "top_strengths" lists the sub_strength ids that are flagged "signature", ordered by combined competence+energy score descending. If there are no signatures, include the top three by combined score.
 - For each sub_strength, if the narrative evidences it, put a short direct quote (or a paraphrase in the person's terms) in "narrative_evidence". Otherwise set it to null.

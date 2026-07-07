@@ -53,8 +53,13 @@ export default async function RecommendRoute() {
 
   return (
     <>
+      <TopNav />
+      {backHref && backLabel && (
+        <div className="container-wide">
+          <AdminBackLink href={backHref} label={backLabel} />
+        </div>
+      )}
       <div className="hero-shell">
-        <TopNav />
         <div className="hero-body">
           <div className="container-wide">
             <div className="eyebrow">Team builder</div>
@@ -63,15 +68,12 @@ export default async function RecommendRoute() {
             <p className="hero-sub">
               Describe the mission and pick a size. The system proposes a
               roster and explains the reasoning. Nothing saves until you
-              confirm — the final call is yours.
+              confirm. The final call is yours.
             </p>
           </div>
         </div>
       </div>
       <div className="container-wide content-shell">
-        {backHref && backLabel && (
-          <AdminBackLink href={backHref} label={backLabel} />
-        )}
         <RecommendPage
           isSystemAdmin={me.role === "system_admin"}
           defaultCompanyId={defaultCompanyId}

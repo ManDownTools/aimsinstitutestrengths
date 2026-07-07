@@ -50,9 +50,11 @@ A person can belong to multiple teams. Do not prevent it; surface it (see overal
 
 RLS follows the existing model: company admins read and write teams in their company, system admins everywhere, team members have no access to the team builder in this version. Do not show team compositions or evaluations to team members.
 
-## Mission types and weights
+## Mission types, weights, and stakes
 
-The right mix depends on what the team is for. Each mission type carries a weight profile over the four dimensions, applied in scoring. Weights are relative emphasis, not requirements.
+The right mix depends on what the team is for. Each mission type carries a weight profile over the four dimensions, applied in scoring, plus a stakes factor that controls how heavily emerging coverage discounts.
+
+Weights are relative emphasis, not requirements:
 
 - **launch** (new product, initiative, or market): Thinking 0.35, Influence 0.30, Execution 0.20, Relating 0.15
 - **stabilize** (operations, process, reliability): Thinking 0.15, Influence 0.15, Execution 0.45, Relating 0.25
@@ -60,7 +62,23 @@ The right mix depends on what the team is for. Each mission type carries a weigh
 - **growth** (scaling what works): Thinking 0.20, Influence 0.30, Execution 0.30, Relating 0.20
 - **general** (standing team, no dominant phase): 0.25 each
 
-Store these in one code constant so they are easy to tune. The mission_notes free text is passed to the narrative call for context but does not affect deterministic scoring.
+Stakes classify how forgiving the mission is of coverage that's still developing:
+
+- **high-stakes**: turnaround, stabilize. Emerging coverage counts at quarter value toward the band. Greedy selection strongly prefers signature holders.
+- **medium**: launch. Emerging coverage counts at 0.375 (in between).
+- **development-friendly**: growth, general. Emerging coverage counts at half value. Selection may choose an emerging holder when no signature holder is available or when the signature holders are all overallocated.
+
+Store both the weights and the stakes factor in one code constant so they are easy to tune. The mission_notes free text is passed to the narrative call for context but does not affect deterministic scoring.
+
+## Coverage tiers
+
+Each person contributes to a sub-strength via one of three tiers, derived from the flag already stamped on their individual results:
+
+- **Signature** (competence >= 4 AND energy >= 4). Full-value coverage. The team can rely on it now.
+- **Emerging** (energy >= 4 AND competence <= 3). Half-value or quarter-value coverage depending on stakes. Energy is present but skill is still developing.
+- **Draining** (competence >= 4 AND energy <= 2). Never counts as coverage, even though the person could do the work.
+
+Anything else (low on both or middling) contributes nothing to coverage.
 
 ## Scoring engine (deterministic, server-side, no model involved)
 
@@ -68,19 +86,25 @@ All scoring uses the **energy** scores from each member's latest completed asses
 
 Compute the following signals for any roster and mission type:
 
-1. **Arc coverage.** For each of the four dimensions, the team's coverage is the count of members with energy >= 4 on at least one sub-strength in that dimension, and the dimension's depth is the mean of each member's best energy sub-strength within it. A dimension with zero members at energy >= 4 is a gap. Weight gaps by the mission profile: a Relating gap on a stabilize team matters more than on a launch team.
+1. **Arc coverage.** For each of the four dimensions, the team's coverage is the count of members with signature or emerging coverage on at least one sub-strength in that dimension, tracked as separate signature and emerging counts. The dimension's depth is the mean of each member's best energy sub-strength within it. A dimension with zero coverage (no signature and no emerging) is a gap. Each dimension also carries a tier_strength value: 1 if a signature holder exists, the mission's emerging multiplier if only emerging holders exist, or 0 for a gap. Arc coverage for the band is the mission-weighted sum of tier_strength, so signature coverage counts full and emerging counts partial per the stakes factor.
 
-2. **Sub-strength coverage map.** For each of the sixteen sub-strengths: covered (anyone >= 4), sole holder (exactly one person >= 4, flag that person), or uncovered.
+2. **Sub-strength coverage map.** For each of the sixteen sub-strengths, one of:
+   - `covered_signature` (at least one member is a signature holder)
+   - `covered_emerging` (best available tier is emerging; nobody is a signature holder)
+   - `sole_holder` (exactly one member holds any coverage; that person's id is recorded along with their tier of signature or emerging)
+   - `uncovered` (nobody holds any coverage)
 
-3. **Duplication.** Sub-strengths where three or more members have energy >= 4. Not inherently bad, but flagged so the admin can see where the team is spending multiple people on the same strength while other teams or sub-strengths go without.
+   Each entry also carries a `tier` field of `signature`, `emerging`, or null for uncovered.
 
-4. **Draining assignments.** Members whose likely role on this team leans on a capable-but-draining zone: competence >= 4 and energy <= 2 on a sub-strength that the mission profile weights heavily and that the team otherwise lacks. These get an explicit warning naming the person and the sub-strength, because assembling a team that structurally depends on someone's draining zone violates the regenerative principle.
+3. **Duplication.** Sub-strengths where three or more members hold any coverage tier. Not inherently bad, but flagged so the admin can see where the team is spending multiple people on the same strength while other teams or sub-strengths go without.
+
+4. **Draining assignments.** Members whose likely role on this team leans on a capable-but-draining zone: competence >= 4 and energy <= 2 on a sub-strength that the mission profile weights heavily and that the team otherwise lacks (nobody else covers it at any tier). These get an explicit warning naming the person and the sub-strength, because assembling a team that structurally depends on someone's draining zone violates the regenerative principle.
 
 5. **Orientation mix.** The spread of members' orientation leans. A team of all strongly-direct people gets a note about collaboration friction; a team of all strongly-facilitative people gets a note about decision speed. Balanced mixes pass silently.
 
 6. **Overallocation.** Members who are already on other active teams. Flag with a count ("also on 2 other active teams"). This is a warning chip, never a block.
 
-7. **Overall fit band.** Roll the weighted dimension coverage into one band: Strong, Workable, or Stretch. Never a percentage. The band always renders alongside its component signals, never alone.
+7. **Overall fit band.** Roll the mission-weighted tier_strength into one band: Strong, Workable, or Stretch. Never a percentage. The band always renders alongside its component signals, never alone. A gap in a dimension the mission weights at 0.25 or more forces Stretch on its own.
 
 Output shape for `team_evaluations.signals`:
 
@@ -88,10 +112,24 @@ Output shape for `team_evaluations.signals`:
 {
   "band": "strong | workable | stretch",
   "dimensions": [
-    { "dimension": "thinking", "coverage_count": 0, "depth": 0.0, "gap": false, "mission_weight": 0.0 }
+    {
+      "dimension": "thinking",
+      "coverage_count": 0,
+      "signature_count": 0,
+      "emerging_count": 0,
+      "depth": 0.0,
+      "gap": false,
+      "mission_weight": 0.0,
+      "tier_strength": 0.0
+    }
   ],
   "sub_strengths": [
-    { "sub_strength": "ideation", "state": "covered | sole_holder | uncovered", "holder": "profile_id or null" }
+    {
+      "sub_strength": "ideation",
+      "state": "covered_signature | covered_emerging | sole_holder | uncovered",
+      "holder": "profile_id or null",
+      "tier": "signature | emerging | null"
+    }
   ],
   "duplications": ["sub_strength"],
   "draining_warnings": [ { "profile_id": "...", "sub_strength": "..." } ],
@@ -105,9 +143,14 @@ Output shape for `team_evaluations.signals`:
 The candidate pool is everyone in the company with a completed assessment, minus anyone the admin excluded. Given a target size and mission type, and any pinned members:
 
 1. Start with pinned members.
-2. Greedily add the candidate whose addition most improves weighted arc coverage, breaking ties by covering uncovered sub-strengths, then by lowest overallocation, then by avoiding draining dependence.
-3. Stop at target size. Do not run any heavier optimization; company sizes in this product are small and greedy selection with clear explanations beats opaque optimization.
-4. Score the result with the engine above and generate the narrative.
+2. Greedily add the next member in two rounds:
+   - **Signature round.** Pick the candidate whose signature strengths most improve mission-weighted arc coverage. In dev-friendly missions there is a relief valve: if every signature candidate is already overallocated and there is an emerging candidate with zero other active teams whose emerging strengths still improve coverage, the pool expands to include those fresh emerging candidates.
+   - **Emerging round.** If no candidate has any positive signature contribution left, pick the candidate whose emerging strengths most improve mission-weighted arc coverage.
+3. Ties break by uncovered sub-strengths reduced (higher wins), then lowest overallocation, then avoiding draining dependence.
+4. Stop at target size. Do not run any heavier optimization; company sizes in this product are small and greedy selection with clear explanations beats opaque optimization.
+5. Score the result with the engine above and generate the narrative.
+
+Each recommended pick is stamped with the tier it was brought in on: `signature`, `emerging`, or `pinned`. The one-line reason per proposed member states this plainly.
 
 Every recommended roster must include, in the narrative, what the team still lacks. Every real team lacks something, and stating it plainly builds trust in the recommendations.
 
@@ -115,9 +158,9 @@ Every recommended roster must include, in the narrative, what the team still lac
 
 One server-side call per evaluation, cached in team_evaluations keyed by roster_hash, regenerated only when the roster or mission changes.
 
-Input: the computed signals, the roster with names and positions, each member's top energy sub-strengths, the mission type and mission_notes.
+Input: the computed signals (including tier information per sub-strength and per dimension), the roster with names and positions, each member's top energy sub-strengths, the mission type and mission_notes. In recommend mode the roster also carries the `brought_in_on` tier for each pick.
 
-System prompt requirements: embed the voice rules and banned words from voice-and-tone.md; frame everything as configuration for this mission, never ranking or judgment of people; name specific people and sub-strengths; explain why each member is on the roster in one sentence each (recommend mode) or what each member most brings (build mode); state plainly what the team lacks and where its risks are, including any sole holders, draining warnings, and orientation notes; close with one or two concrete suggestions, such as a pairing, a watch-out, or where a future addition would help most; 200 to 300 words; never invent scores; contractions, no em-dashes, no jargon.
+System prompt requirements: embed the voice rules and banned words from voice-and-tone.md; frame everything as configuration for this mission, never ranking or judgment of people; distinguish signature coverage (something the team can rely on now) from emerging coverage (energy that's still developing, name it as such) and never invent numeric scores; name specific people and sub-strengths; explain why each member is on the roster in one sentence each (recommend mode, stating whether they're brought in on signature or emerging strengths) or what each member most brings (build mode); state plainly what the team lacks and where its risks are, including any sole holders, draining warnings, over-reliance on emerging coverage in mission-critical dimensions, and orientation notes; when the mission depends heavily on a dimension that is covered only by emerging strengths, name that plainly; close with one or two concrete suggestions, such as a pairing, a watch-out, or where a future addition would help most; 200 to 300 words; contractions, no em-dashes, no jargon.
 
 ## UI
 

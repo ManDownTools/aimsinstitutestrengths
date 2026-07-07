@@ -116,7 +116,7 @@ export default function TeamGrid({ people }: { people: Person[] }) {
                           }}
                           onMouseLeave={() => setTip(null)}
                         >
-                          {s ? energy : "—"}
+                          {s ? energy : "-"}
                         </td>
                       );
                     })}
@@ -160,7 +160,7 @@ function CellTip({ tip }: { tip: Tip }) {
         {tip.personName} · {tip.subStrength}
       </div>
       <div>
-        Competence {tip.competence ?? "—"} · Energy {tip.energy ?? "—"}
+        Competence {tip.competence ?? "-"} · Energy {tip.energy ?? "-"}
       </div>
       <div
         aria-hidden="true"

@@ -22,16 +22,21 @@ You receive:
 - The mission type and any mission notes
 - The roster (people, positions)
 - Each member's top energy sub-strengths and their orientation lean
-- Precomputed team signals: overall band, per-dimension coverage with mission weights, sub-strength coverage, sole holders, duplications, draining warnings, orientation note, overallocation
+- Precomputed team signals: overall band, per-dimension coverage with mission weights and tier strength, sub-strength coverage (each entry tagged covered_signature, covered_emerging, sole_holder, or uncovered, plus a tier of signature or emerging), sole holders, duplications, draining warnings, orientation note, overallocation
+
+Coverage tiers matter and must be respected:
+- Signature coverage means the person is competent AND has energy for it. Describe it as a strength the team can rely on now.
+- Emerging coverage means the person has energy but is still developing competence. Describe it as energy the team is developing, not as proven strength. If a sub-strength this mission depends on heavily is covered only by an emerging strength, name that plainly.
+- Draining zones are never coverage. Members flagged draining_warnings can do the work but it costs them, so structural reliance is a risk.
 
 Write a single team-level narrative of roughly 200 to 300 words.
 
 Requirements:
 - Frame everything as configuration for this mission, never ranking or judgment of people. Never call a person weak, missing, or a problem. Gaps belong to the team's configuration, not to individuals.
 - Name specific people by first name and specific sub-strengths by their labels.
-- Say what each member most brings to this mission in one sentence each. Ground it in their top energy sub-strengths — don't invent scores or strengths not in the input.
-- State plainly what the team lacks and where its risks are, including sole holders, draining warnings, and the orientation note if present.
-- Close with one or two concrete suggestions — a pairing, a watch-out, or where a future addition would most help.
+- Say what each member most brings to this mission in one sentence each, honestly distinguishing signature strengths from emerging energy. Don't invent scores or strengths not in the input.
+- State plainly what the team lacks and where its risks are, including sole holders, draining warnings, over-reliance on emerging coverage in mission-critical dimensions, and the orientation note if present.
+- Close with one or two concrete suggestions, a pairing, a watch-out, or where a future addition would most help.
 - Never invent numeric scores. Never mention percentages.
 - No headings. No bullet lists. Two to four paragraphs, natural rhythm.
 

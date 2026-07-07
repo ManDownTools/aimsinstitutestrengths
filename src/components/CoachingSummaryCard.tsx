@@ -42,7 +42,7 @@ export default function CoachingSummaryCard({
       {summary.exchangeCount === 0 ? (
         <>
           <p style={{ margin: 0 }}>
-            Talk anything through with your coach — what surprised you, what
+            Talk anything through with your coach. What surprised you, what
             you want to build on, or where you'd like to spend your energy.
             No admin can read it.
           </p>
@@ -80,7 +80,7 @@ export default function CoachingSummaryCard({
             </Link>
           </div>
           <p className="caption" style={{ margin: 0 }}>
-            {firstName}, the thread stays open — pick it up any time.
+            {firstName}, the thread stays open. Pick it up any time.
           </p>
         </>
       )}

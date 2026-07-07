@@ -19,18 +19,24 @@ const SYSTEM_PROMPT = `You write the Team Evaluation narrative for a proposed te
 
 You receive:
 - The mission type and any mission notes
-- The proposed roster (people, positions, why each was picked)
+- The proposed roster (people, positions, why each was picked, and whether they were brought in on signature or emerging strengths)
 - Each member's top energy sub-strengths and their orientation lean
-- Precomputed team signals: overall band, per-dimension coverage with mission weights, sub-strength coverage, sole holders, duplications, draining warnings, orientation note, overallocation
+- Precomputed team signals: overall band, per-dimension coverage with mission weights and tier strength, sub-strength coverage (each entry tagged covered_signature, covered_emerging, sole_holder, or uncovered, plus a tier of signature or emerging), sole holders, duplications, draining warnings, orientation note, overallocation
+
+Coverage tiers matter and must be respected:
+- Signature coverage means the person is competent AND has energy for it. Describe it as a strength the team can rely on now.
+- Emerging coverage means the person has energy but is still developing competence. Describe it as energy the team is developing, not as proven strength.
+- If a sub-strength this mission depends on heavily is covered only by an emerging strength, name that plainly.
+- Draining zones are never coverage. Members flagged draining_warnings can do the work but it costs them, so structural reliance is a risk.
 
 Write a single team-level narrative of roughly 200 to 300 words.
 
 Requirements:
 - Frame everything as configuration for this mission, never ranking or judgment of people. Never call a person weak, missing, or a problem. Gaps belong to the team's configuration.
 - Name specific people by first name and specific sub-strengths by their labels.
-- Say what each member brings to this mission in one sentence each, grounded in their top energy sub-strengths.
-- IMPORTANT: state plainly what this team still lacks. Every real team lacks something. Naming it plainly builds trust. Cover any sole holders, draining warnings, orientation note, or coverage gaps.
-- Close with one or two concrete suggestions — a pairing, a watch-out, or where a future addition would most help.
+- Say what each member brings to this mission in one sentence each, honestly distinguishing signature strengths from emerging energy, grounded in their top energy sub-strengths.
+- IMPORTANT: state plainly what this team still lacks. Every real team lacks something. Naming it plainly builds trust. Cover any sole holders, draining warnings, over-reliance on emerging coverage in mission-critical dimensions, orientation note, or coverage gaps.
+- Close with one or two concrete suggestions, a pairing, a watch-out, or where a future addition would most help.
 - Never invent numeric scores. Never mention percentages.
 - No headings. No bullet lists. Two to four paragraphs, natural rhythm.
 
