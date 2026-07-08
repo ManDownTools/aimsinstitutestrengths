@@ -77,7 +77,9 @@ export default function ResultsView({
         <h2 className="chartreuse-underline">{firstName}, at a glance</h2>
         <div style={{ lineHeight: 1.7 }}>
           {summaryParagraphs.map((p, i) => (
-            <p key={i} style={{ margin: i === 0 ? 0 : "1.5em 0 0" }}>{p}</p>
+            <p key={i} style={{ margin: i === 0 ? 0 : "1.5em 0 0" }}>
+              {boldStrengths(p)}
+            </p>
           ))}
         </div>
       </section>
@@ -147,7 +149,7 @@ export default function ResultsView({
             {profile.divergences.map((d) => (
               <div key={d.sub_strength} className="stack-1">
                 <strong>{SUB_STRENGTH_LABELS[d.sub_strength] ?? d.sub_strength}</strong>
-                <div>{humanize(d.note)}</div>
+                <div>{boldStrengths(humanize(d.note))}</div>
               </div>
             ))}
           </div>
@@ -173,6 +175,25 @@ function humanize(text: string): string {
     out = out.replace(re, label);
   }
   return out;
+}
+
+// Wraps every occurrence of a sub-strength or dimension label in <strong>.
+// Longest-first match order so multi-word labels beat their component words.
+function boldStrengths(text: string): React.ReactNode[] {
+  const labels = [
+    ...Object.values(SUB_STRENGTH_LABELS),
+    ...Object.values(DIMENSION_LABELS),
+  ].filter((k) => k && k.trim().length > 0);
+  if (labels.length === 0) return [text];
+  const escaped = labels
+    .slice()
+    .sort((a, b) => b.length - a.length)
+    .map((k) => k.replace(/[-\\/\\^$*+?.()|[\]{}]/g, "\\$&"));
+  const re = new RegExp(`(${escaped.join("|")})`, "g");
+  const parts = text.split(re);
+  return parts.map((part, i) =>
+    i % 2 === 1 ? <strong key={i}>{part}</strong> : part,
+  );
 }
 
 function DoubleBar({

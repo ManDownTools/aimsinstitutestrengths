@@ -72,7 +72,7 @@ export interface ResultsProfile {
 
 export const SUB_STRENGTH_LABELS: Record<string, string> = {
   ideation: "Ideation",
-  problem_solving: "Problem solving",
+  problem_solving: "Problem Solving",
   analysis: "Analysis",
   foresight: "Foresight",
   judgment: "Judgment",
@@ -80,12 +80,12 @@ export const SUB_STRENGTH_LABELS: Record<string, string> = {
   communication: "Communication",
   direction: "Direction",
   connecting: "Connecting",
-  follow_through: "Follow-through",
+  follow_through: "Follow-Through",
   organizing: "Organizing",
   ownership: "Ownership",
-  developing_others: "Developing others",
+  developing_others: "Developing Others",
   empathy: "Empathy",
-  building_trust: "Building trust",
+  building_trust: "Building Trust",
   including: "Including",
 };
 
