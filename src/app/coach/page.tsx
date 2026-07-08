@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import TopNav from "@/components/TopNav";
 import CoachChat from "./CoachChat";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -60,6 +61,23 @@ export default async function CoachPage() {
     <>
       <TopNav />
       <main className="container-wide" style={{ paddingTop: 32, paddingBottom: 32 }}>
+        <nav className="admin-nav-bar" aria-label="Back to results">
+          <Link href="/results" className="admin-nav-back">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            <span>Back to your results</span>
+          </Link>
+        </nav>
         <div className="stack-4">
           <div>
             <div className="subhead">Coaching</div>
