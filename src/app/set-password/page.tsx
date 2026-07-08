@@ -3,20 +3,33 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import SetPasswordForm from "./SetPasswordForm";
 import SetPasswordAuthGate from "./SetPasswordAuthGate";
 
-export default async function SetPasswordPage() {
+export default async function SetPasswordPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const isFreshInvite =
+    typeof params.fresh === "string" || typeof params.code === "string";
+
   const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   let heading = "Create your password to get started.";
-  let sub =
-    "You'll use this the next time you sign in.";
+  let sub = "You'll use this the next time you sign in.";
   let email: string | null = null;
   let firstName: string | null = null;
   let isInvite = false;
 
-  if (user) {
+  // Show the form only when we have a session AND the URL isn't carrying a
+  // fresh invite/recovery marker. When ?fresh=1 or ?code=xxx is present, we
+  // fall through to the auth gate so it can sign out any lingering session,
+  // exchange the URL for the invitee's session, then reload cleanly.
+  const showForm = user && !isFreshInvite;
+
+  if (showForm && user) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("first_name, email, invite_status")
@@ -48,7 +61,7 @@ export default async function SetPasswordPage() {
         <div className="auth-hero-bar" aria-hidden="true" />
         <p className="auth-hero-sub">{sub}</p>
         <div className="auth-hero-card">
-          {user ? (
+          {showForm ? (
             <SetPasswordForm email={email} />
           ) : (
             <SetPasswordAuthGate />

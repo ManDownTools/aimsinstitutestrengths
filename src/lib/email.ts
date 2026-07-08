@@ -33,10 +33,13 @@ function baseUrl() {
 }
 
 function authRedirect() {
-  // Land directly on /set-password. That page handles both the PKCE ?code=xxx
-  // query and the implicit-flow #access_token=xxx hash fragment so the invitee
-  // never sees a login screen they can't get past.
-  return `${baseUrl()}/set-password`;
+  // Land on /set-password with a `fresh=1` marker. The server-side page
+  // checks for it and routes those requests through the auth gate regardless
+  // of any existing session cookie, so an admin who clicks an invite while
+  // signed in as someone else ends up updating the invitee's password
+  // (not their own). Handles both the PKCE ?code=xxx query and the
+  // implicit-flow #access_token=xxx hash fragment.
+  return `${baseUrl()}/set-password?fresh=1`;
 }
 
 export type InvitedUser = { userId: string };
