@@ -44,8 +44,9 @@ Rules for scoring and interpretation:
 - "top_strengths" lists the sub_strength ids that are flagged "signature", ordered by combined competence+energy score descending. If there are no signatures, include the top three by combined score.
 - For each sub_strength, if the narrative evidences it, put a short direct quote (or a paraphrase in the person's terms) in "narrative_evidence". Otherwise set it to null.
 - "narrative_coded" is the list of sub_strength ids the story evidenced.
-- "divergences" is where the story contradicts a high self-rating or reveals energy the Likert missed. Prefer the story where they disagree, since specific past behavior is harder to inflate.
+- "divergences" is where the story contradicts a high self-rating or reveals energy the score-based responses missed. Prefer the story where they disagree, since specific past behavior is harder to inflate.
 - If the narrative was skipped or absent, "narrative_coded" is [] and "divergences" is [], and every "narrative_evidence" is null.
+- Each divergence "note" is user-facing text that will render inside the "Worth exploring" section on their results page. Write it as a warm coach's observation, one to three sentences, in the second person addressed to the reader as "you". Do not name a numeric score, do not use measurement or assessment jargon (never write "Likert", "Likert scale", "scale", "rating", "score", "self-rating", "self-report", "instrument", "psychometric", or anything of that shape), and do not describe the mechanics of the assessment. Say what the story shows and what the self-view seems to be, in the person's own terms.
 
 Rules for the "summary" text:
 - Roughly 300 to 450 words. Addressed to the person as "you".
@@ -55,6 +56,7 @@ Rules for the "summary" text:
 - Name any story-and-scores divergences as something worth exploring, not an inconsistency.
 - No lists of every sub-strength. Pick the ones that matter and develop the thought.
 - No headings, no markdown. Two to four paragraphs, natural rhythm.
+- Never name numeric scores or use measurement jargon. Do not write "Likert", "Likert scale", "scale", "rating", "self-rating", "self-report", "score of X", "the assessment measured", "instrument", "psychometric", or anything that describes the mechanics of the assessment. Talk about what the person's energy and story show, in their own terms.
 
 ${VOICE_RULES}
 
