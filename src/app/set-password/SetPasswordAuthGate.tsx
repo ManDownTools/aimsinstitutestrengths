@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 
-type Status = "trying" | "recovered" | "no-link" | "error";
+type Status = "trying" | "recovered" | "no-link" | "error" | "expired";
 
 // Completes the auth flow from the URL when the server-rendered page had no
 // session yet. Handles both variants Supabase can send:
@@ -33,11 +33,26 @@ export default function SetPasswordAuthGate() {
       const errorDescription =
         url.searchParams.get("error_description") ??
         hashParams.get("error_description");
+      const errorCode =
+        url.searchParams.get("error_code") ??
+        hashParams.get("error_code");
 
-      if (errorDescription) {
+      if (errorDescription || errorCode) {
         if (cancelled) return;
-        setStatus("error");
-        setMessage(errorDescription);
+        // Sign out the stale session so we don't confuse the caller with
+        // signals from whoever happened to be logged in already.
+        await supabase.auth.signOut({ scope: "local" });
+        if (
+          errorCode === "otp_expired" ||
+          /expired|invalid/i.test(errorDescription ?? "")
+        ) {
+          setStatus("expired");
+        } else {
+          setStatus("error");
+          setMessage(errorDescription ?? errorCode ?? "Unknown error");
+        }
+        // Clean the URL so a browser back doesn't reopen the same error.
+        window.history.replaceState({}, "", window.location.pathname);
         return;
       }
 
@@ -104,7 +119,12 @@ export default function SetPasswordAuthGate() {
 
   return (
     <div className="stack-3" style={{ textAlign: "center" }}>
-      {status === "no-link" ? (
+      {status === "expired" ? (
+        <p>
+          This invitation link has expired. Ask your admin to resend the
+          invitation, then click the newest link in your inbox.
+        </p>
+      ) : status === "no-link" ? (
         <p>
           This page needs a valid invitation or reset link. Ask your admin to
           resend your invitation, or use the forgot-password flow if you
