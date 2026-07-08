@@ -1426,6 +1426,19 @@ a.org-node-card:hover {
 }
 .admin-nav-back:hover { text-decoration: underline; }
 .admin-nav-back svg { width: 14px; height: 14px; }
+
+/* When the breadcrumb sits inside the gradient hero, the cobalt link is
+   invisible against navy. Switch to a light chartreuse-tinged tone. */
+.hero-shell .admin-nav-back {
+  color: var(--aims-chartreuse);
+}
+.hero-shell .admin-nav-back:hover {
+  color: var(--aims-white);
+}
+.hero-shell .admin-nav-bar {
+  padding-top: 20px;
+  padding-bottom: 4px;
+}
 .admin-nav-context {
   font-family: var(--font-body);
   font-size: 14px;

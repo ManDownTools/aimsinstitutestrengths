@@ -147,11 +147,11 @@ export default async function TeamDetailPage({
 
   return (
     <>
-      <TopNav />
-      <div className="container-wide">
-        <AdminBackLink href={backHref} label={backLabel} />
-      </div>
       <div className="hero-shell">
+        <TopNav />
+        <div className="container-wide">
+          <AdminBackLink href={backHref} label={backLabel} />
+        </div>
         <div className="hero-body">
           <div className="container-wide">
             <div className="eyebrow">Team builder</div>
