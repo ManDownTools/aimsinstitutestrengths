@@ -52,15 +52,28 @@ export default async function TeamsListPage() {
   const isSystemAdmin = me.role === "system_admin";
 
   // Back link destination:
-  //  - company admin → their /admin company overview
-  //  - system admin → the cross-company Companies list at /system
+  //  - company admin → their own /admin company overview
+  //  - system admin → if every team on the list belongs to the same company,
+  //    return the admin to that specific company's overview; if the list
+  //    spans multiple companies (or is empty), fall back to /system.
   const myCompanyName = me.company_id
     ? companyById.get(me.company_id) ?? ""
     : "";
-  const backHref = isSystemAdmin ? "/system" : "/admin";
-  const backLabel = isSystemAdmin
-    ? "Back to Companies"
-    : `Back to ${myCompanyName || "company"}`;
+
+  let backHref = "/admin";
+  let backLabel = `Back to ${myCompanyName || "company"}`;
+  if (isSystemAdmin) {
+    const distinctCompanyIds = new Set(teamRows.map((t) => t.company_id));
+    if (distinctCompanyIds.size === 1) {
+      const onlyId = Array.from(distinctCompanyIds)[0];
+      const onlyName = companyById.get(onlyId) ?? "company";
+      backHref = `/system/company/${onlyId}`;
+      backLabel = `Back to ${onlyName}`;
+    } else {
+      backHref = "/system";
+      backLabel = "Back to Companies";
+    }
+  }
 
   return (
     <>
