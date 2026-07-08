@@ -79,7 +79,10 @@ export default function CoachingSummaryCard({
               Continue the conversation
             </Link>
           </div>
-          <p className="caption" style={{ margin: 0 }}>
+          <p
+            className="caption"
+            style={{ margin: 0, marginTop: "var(--space-4)" }}
+          >
             {firstName}, the thread stays open. Pick it up any time.
           </p>
         </>
