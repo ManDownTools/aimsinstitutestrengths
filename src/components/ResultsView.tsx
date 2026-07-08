@@ -42,7 +42,7 @@ export default function ResultsView({
   const summaryParagraphs = summary
     .replace(/\\n/g, "\n")
     .split(/\n+/)
-    .map((p) => p.trim())
+    .map((p) => humanize(p.trim()))
     .filter(Boolean);
 
   return (
@@ -147,7 +147,7 @@ export default function ResultsView({
             {profile.divergences.map((d) => (
               <div key={d.sub_strength} className="stack-1">
                 <strong>{SUB_STRENGTH_LABELS[d.sub_strength] ?? d.sub_strength}</strong>
-                <div>{d.note}</div>
+                <div>{humanize(d.note)}</div>
               </div>
             ))}
           </div>
@@ -155,6 +155,24 @@ export default function ResultsView({
       )}
     </div>
   );
+}
+
+// Replaces raw sub-strength / dimension ids like "building_trust" or
+// "relating" with their human-readable labels. Belt-and-braces for the
+// occasional Claude output that leaks a snake_case id despite the system
+// prompt telling it not to.
+function humanize(text: string): string {
+  if (!text) return text;
+  let out = text;
+  for (const [id, label] of Object.entries(SUB_STRENGTH_LABELS)) {
+    const re = new RegExp(`\\b${id}\\b`, "g");
+    out = out.replace(re, label);
+  }
+  for (const [id, label] of Object.entries(DIMENSION_LABELS)) {
+    const re = new RegExp(`\\b${id}\\b`, "gi");
+    out = out.replace(re, label);
+  }
+  return out;
 }
 
 function DoubleBar({

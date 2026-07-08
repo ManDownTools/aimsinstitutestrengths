@@ -5,7 +5,11 @@ import { anthropic, ANTHROPIC_MODEL } from "@/lib/anthropic";
 import { VOICE_RULES } from "@/lib/voice-rules";
 import { scoreResponses } from "@/lib/scoring";
 import { tenurePhrase } from "@/lib/tenure";
-import type { Item } from "@/lib/types";
+import {
+  DIMENSION_LABELS,
+  SUB_STRENGTH_LABELS,
+  type Item,
+} from "@/lib/types";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -47,6 +51,11 @@ Rules for scoring and interpretation:
 - "divergences" is where the story contradicts a high self-rating or reveals energy the score-based responses missed. Prefer the story where they disagree, since specific past behavior is harder to inflate.
 - If the narrative was skipped or absent, "narrative_coded" is [] and "divergences" is [], and every "narrative_evidence" is null.
 - Each divergence "note" is user-facing text that will render inside the "Worth exploring" section on their results page. Write it as a warm coach's observation, one to three sentences, in the second person addressed to the reader as "you". Do not name a numeric score, do not use measurement or assessment jargon (never write "Likert", "Likert scale", "scale", "rating", "score", "self-rating", "self-report", "instrument", "psychometric", or anything of that shape), and do not describe the mechanics of the assessment. Say what the story shows and what the self-view seems to be, in the person's own terms.
+
+Naming rules (applies to every user-facing text field: "summary" and every "note" inside "divergences"):
+- Always refer to sub-strengths and dimensions by their human-readable labels, taken from the "labels" map in the input. Examples: write "Building trust" (not building_trust), "Problem solving" (not problem_solving), "Follow-through" (not follow_through), "Developing others" (not developing_others), "Relating" (not relating).
+- Never emit a raw snake_case identifier in prose. If you catch yourself writing an underscore in a strength or dimension name, rewrite the sentence using the label.
+- The snake_case ids in the "scoring" payload are for internal round-tripping only. Copy them verbatim into JSON id fields ("sub_strength", "dimension", "narrative_coded", "top_strengths"). Never surface them to the reader.
 
 Rules for the "summary" text:
 - Roughly 300 to 450 words. Addressed to the person as "you".
@@ -126,6 +135,14 @@ export async function POST(request: Request) {
       tenure_in_position: tenurePhrase(profile?.position_start_date),
     },
     scoring: scored,
+    // Human-readable labels for every id in the scoring payload. Use these in
+    // any user-facing prose. The snake_case ids like "building_trust" appear
+    // in the scoring data only so the code can round-trip them; they should
+    // never appear in written output.
+    labels: {
+      sub_strengths: SUB_STRENGTH_LABELS,
+      dimensions: DIMENSION_LABELS,
+    },
     narrative_transcript:
       narrative
         ?.map((m) => `${m.role.toUpperCase()}: ${m.content}`)
