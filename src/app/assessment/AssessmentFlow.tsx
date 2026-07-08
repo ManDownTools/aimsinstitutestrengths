@@ -118,6 +118,31 @@ export default function AssessmentFlow({
     setIndex(index - 1);
   }
 
+  // Furthest index the user is allowed to move forward to without answering:
+  //  - if every card has an answer, it's the last card index (they can
+  //    still leaf back through, and hitting Next on the last card advances
+  //    to the narrative phase);
+  //  - otherwise it's the first unanswered card index.
+  const firstUnansweredNow = cardItems.findIndex(
+    (i) => responses[i.id] === undefined,
+  );
+  const maxAllowedIndex =
+    firstUnansweredNow === -1 ? cardItems.length - 1 : firstUnansweredNow;
+
+  function forward() {
+    if (index >= maxAllowedIndex) {
+      // On the last card with every card answered: continue to narrative.
+      if (
+        index === cardItems.length - 1 &&
+        firstUnansweredNow === -1
+      ) {
+        setPhase("narrative");
+      }
+      return;
+    }
+    setIndex(index + 1);
+  }
+
   async function sendNarrative() {
     if (!narrativeInput.trim() || narrativeSending) return;
     const userMsg: NarrativeMsg = { role: "user", content: narrativeInput.trim() };
@@ -302,10 +327,24 @@ export default function AssessmentFlow({
               Back
             </button>
             <div className="caption">{answered} answered</div>
+            <button
+              className="btn btn-ghost sm"
+              onClick={forward}
+              disabled={
+                index >= maxAllowedIndex &&
+                !(
+                  index === cardItems.length - 1 &&
+                  firstUnansweredNow === -1
+                )
+              }
+            >
+              Next
+            </button>
           </div>
         </div>
         <p className="caption center" style={{ textAlign: "center" }}>
-          Hi {firstName}, you can step back if you want to change an answer.
+          Hi {firstName}, step back to change an answer, or step forward
+          through anything you've already answered.
         </p>
       </div>
     </div>
@@ -335,7 +374,6 @@ function LikertCard({
               key={value}
               className={`likert-option ${currentValue === value ? "selected" : ""}`}
               onClick={() => onSelect(value)}
-              disabled={currentValue !== undefined && currentValue !== value}
             >
               <span className="radio-dot" />
               <span>{label}</span>
@@ -395,7 +433,6 @@ function OrientationCard({
             key={opt.label}
             className={currentValue === opt.normalized ? "selected" : ""}
             onClick={() => onSelect(opt.normalized)}
-            disabled={currentValue !== undefined && currentValue !== opt.normalized}
           >
             {opt.label}
           </button>
