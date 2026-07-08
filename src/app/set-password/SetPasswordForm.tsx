@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import PasswordInput from "@/components/PasswordInput";
 import { createBrowserSupabase } from "@/lib/supabase/client";
@@ -17,6 +17,19 @@ export default function SetPasswordForm({
   const [confirm, setConfirm] = useState("");
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+
+  // Safety net: if this form mounted with an implicit-flow invite hash in the
+  // URL, the server couldn't see it and rendered the form for whatever session
+  // cookie happened to be live. Redirect through the auth gate so it can sign
+  // out the wrong session and establish the invitee's before we ever show a
+  // password field.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const hash = window.location.hash;
+    if (hash.startsWith("#") && hash.includes("access_token=")) {
+      window.location.replace("/set-password?fresh=1" + hash);
+    }
+  }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
