@@ -37,29 +37,19 @@ export default async function RecommendRoute() {
     : [];
 
   const isSystemAdmin = me.role === "system_admin";
-  const defaultCompanyName =
-    (companies ?? []).find((c) => c.id === defaultCompanyId)?.name ?? "";
-  // Back link goes to the specific company being worked with. If a system
-  // admin hasn't picked one yet, we omit the link entirely.
-  const backHref = isSystemAdmin
-    ? defaultCompanyId
-      ? `/system/company/${defaultCompanyId}`
-      : null
-    : "/admin";
-  const backLabel =
-    isSystemAdmin && !defaultCompanyId
-      ? null
-      : `Back to ${defaultCompanyName || "company"}`;
+  void isSystemAdmin;
+  // Back link goes to the Teams list, which is where the admin came from
+  // when they opened this wizard.
+  const backHref = "/admin/teams";
+  const backLabel = "Back to Teams";
 
   return (
     <>
       <div className="hero-shell">
         <TopNav />
-        {backHref && backLabel && (
-          <div className="container-wide">
-            <AdminBackLink href={backHref} label={backLabel} />
-          </div>
-        )}
+        <div className="container-wide">
+          <AdminBackLink href={backHref} label={backLabel} />
+        </div>
         <div className="hero-body">
           <div className="container-wide">
             <div className="eyebrow">Team builder</div>
