@@ -51,25 +51,24 @@ export default async function TeamsListPage() {
 
   const isSystemAdmin = me.role === "system_admin";
 
-  // Back link only when there's a specific company to return to. System admins
-  // on the cross-company list have no single company context, so we omit it.
+  // Back link destination:
+  //  - company admin → their /admin company overview
+  //  - system admin → the cross-company Companies list at /system
   const myCompanyName = me.company_id
     ? companyById.get(me.company_id) ?? ""
     : "";
-  const backHref = isSystemAdmin ? null : "/admin";
+  const backHref = isSystemAdmin ? "/system" : "/admin";
   const backLabel = isSystemAdmin
-    ? null
+    ? "Back to Companies"
     : `Back to ${myCompanyName || "company"}`;
 
   return (
     <>
       <div className="hero-shell">
         <TopNav />
-        {backHref && backLabel && (
-          <div className="container-wide">
-            <AdminBackLink href={backHref} label={backLabel} />
-          </div>
-        )}
+        <div className="container-wide">
+          <AdminBackLink href={backHref} label={backLabel} />
+        </div>
         <div className="hero-body">
           <div className="container-wide">
             <div className="eyebrow">Team builder</div>
