@@ -59,7 +59,7 @@ export default async function CoachPage() {
   return (
     <>
       <TopNav />
-      <main className="container">
+      <main className="container-wide" style={{ paddingTop: 32, paddingBottom: 32 }}>
         <div className="stack-4">
           <div>
             <div className="subhead">Coaching</div>
