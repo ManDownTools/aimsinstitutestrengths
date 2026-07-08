@@ -1,6 +1,7 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   DIMENSION_LABELS,
   SUB_STRENGTH_LABELS,
@@ -135,7 +136,15 @@ export default function TeamGrid({ people }: { people: Person[] }) {
 }
 
 function CellTip({ tip }: { tip: Tip }) {
-  return (
+  // Portal into document.body so ancestor transforms / filters / will-change
+  // can't hijack our position: fixed containing block. Without this, an
+  // ancestor with any of those turns "fixed" into "positioned relative to
+  // that ancestor" and the tooltip lands far from the hovered cell.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted || typeof document === "undefined") return null;
+
+  return createPortal(
     <div
       role="tooltip"
       style={{
@@ -176,6 +185,7 @@ function CellTip({ tip }: { tip: Tip }) {
           borderTop: "6px solid var(--aims-navy)",
         }}
       />
-    </div>
+    </div>,
+    document.body,
   );
 }
