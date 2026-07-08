@@ -35,19 +35,12 @@ export default async function TeamDetailPage({
     .single();
   if (!team) notFound();
 
-  // Back link destination:
-  //  - system admin → their view of this team's company
-  //  - company admin → their /admin dashboard
+  // Back link destination is the Teams list; from there the admin can jump
+  // back to the company overview if they need to.
   const isSystemAdmin = me.role === "system_admin";
-  const backHref = isSystemAdmin
-    ? `/system/company/${team.company_id}`
-    : "/admin";
-  const { data: company } = await supabase
-    .from("companies")
-    .select("name")
-    .eq("id", team.company_id)
-    .single();
-  const backLabel = `Back to ${company?.name ?? "company"}`;
+  const backHref = "/admin/teams";
+  const backLabel = "Back to Teams";
+  void isSystemAdmin;
 
   // Roster
   const { data: memberships } = await supabase
@@ -154,8 +147,11 @@ export default async function TeamDetailPage({
 
   return (
     <>
+      <TopNav />
+      <div className="container-wide">
+        <AdminBackLink href={backHref} label={backLabel} />
+      </div>
       <div className="hero-shell">
-        <TopNav />
         <div className="hero-body">
           <div className="container-wide">
             <div className="eyebrow">Team builder</div>
@@ -169,7 +165,6 @@ export default async function TeamDetailPage({
         </div>
       </div>
       <div className="container-wide content-shell">
-        <AdminBackLink href={backHref} label={backLabel} />
         <TeamPage
           teamId={team.id}
           name={team.name}

@@ -51,12 +51,19 @@ export async function POST(request: Request) {
     mission_notes?: string | null;
     target_size?: number;
     pinned_ids?: string[];
+    excluded_ids?: string[];
     selected_ids?: string[];
   };
 
   const missionType = body.mission_type;
   const targetSize = Math.max(1, Math.min(20, body.target_size ?? 4));
   const pinnedIds = body.pinned_ids ?? [];
+  // Pin wins over exclude if the caller sent both for the same person, so
+  // the greedy step never sees a contradictory constraint.
+  const pinnedSet = new Set(pinnedIds);
+  const excludedIds = (body.excluded_ids ?? []).filter(
+    (id) => !pinnedSet.has(id),
+  );
   const selectedIds = body.selected_ids;
 
   if (!missionType || !(missionType in MISSION_WEIGHTS)) {
@@ -151,8 +158,10 @@ export async function POST(request: Request) {
     }
   }
 
+  const excludedSet = new Set(excludedIds);
   const candidates: Candidate[] = [];
   for (const p of peopleList) {
+    if (excludedSet.has(p.id)) continue;
     const aid = latestByUser.get(p.id);
     if (!aid) continue;
     const profile = profileByAssessment.get(aid);

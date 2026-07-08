@@ -75,6 +75,8 @@ export default function RecommendPage({
   const [targetSize, setTargetSize] = useState(4);
   const [pinnedIds, setPinnedIds] = useState<string[]>([]);
   const [pinnedFilter, setPinnedFilter] = useState("");
+  const [excludedIds, setExcludedIds] = useState<string[]>([]);
+  const [excludedFilter, setExcludedFilter] = useState("");
 
   // ----- Recommendation state -----
   const [proposal, setProposal] = useState<{
@@ -125,7 +127,15 @@ export default function RecommendPage({
 
   // ----- Form actions -----
   function togglePin(id: string) {
+    // Pinning and excluding are mutually exclusive.
+    setExcludedIds((prev) => prev.filter((x) => x !== id));
     setPinnedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }
+  function toggleExclude(id: string) {
+    setPinnedIds((prev) => prev.filter((x) => x !== id));
+    setExcludedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     );
   }
@@ -152,6 +162,7 @@ export default function RecommendPage({
         mission_notes: missionNotes,
         target_size: targetSize,
         pinned_ids: pinnedIds,
+        excluded_ids: excludedIds,
       }),
     });
     if (!res.ok) {
@@ -182,6 +193,7 @@ export default function RecommendPage({
         mission_notes: missionNotes,
         target_size: proposal.roster.length,
         pinned_ids: pinnedIds,
+        excluded_ids: excludedIds,
         selected_ids: proposal.roster.map((r) => r.profile_id),
       }),
     });
@@ -282,6 +294,16 @@ export default function RecommendPage({
           `${p.first_name} ${p.last_name}`
             .toLowerCase()
             .includes(pinnedFilterQuery),
+        )
+      : completedEligible;
+
+  const excludedFilterQuery = excludedFilter.trim().toLowerCase();
+  const visibleExcludedCandidates =
+    excludedFilterQuery.length > 0
+      ? completedEligible.filter((p) =>
+          `${p.first_name} ${p.last_name}`
+            .toLowerCase()
+            .includes(excludedFilterQuery),
         )
       : completedEligible;
 
@@ -415,14 +437,88 @@ export default function RecommendPage({
                 )}
               {visiblePinnedCandidates.map((p) => {
                 const pinned = pinnedIds.includes(p.id);
+                const excluded = excludedIds.includes(p.id);
                 return (
                   <button
                     key={p.id}
                     type="button"
                     onClick={() => togglePin(p.id)}
                     className={`chip ${pinned ? "chip-primary" : "chip-muted"}`}
-                    title={p.position ?? ""}
-                    style={{ cursor: "pointer" }}
+                    title={
+                      excluded
+                        ? "Currently excluded. Pinning will move them into the required list."
+                        : (p.position ?? "")
+                    }
+                    style={{
+                      cursor: "pointer",
+                      opacity: excluded ? 0.5 : 1,
+                    }}
+                  >
+                    {p.first_name} {p.last_name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Section 4b: Exclude people */}
+        <div className="stack-2">
+          <div className="subhead">Exclude people (optional)</div>
+          <p className="caption" style={{ margin: 0 }}>
+            Excluded people are kept out of the recommendation. Handy when
+            someone is on leave, isn't a fit for this mission, or already has
+            too much on their plate.
+          </p>
+          <div
+            style={{
+              background: "var(--aims-sand)",
+              borderRadius: 12,
+              padding: 16,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+            }}
+          >
+            {completedEligible.length > 10 && (
+              <input
+                type="text"
+                className="input"
+                placeholder="Filter by name"
+                value={excludedFilter}
+                onChange={(e) => setExcludedFilter(e.target.value)}
+                style={{ maxWidth: 320 }}
+              />
+            )}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+              {completedEligible.length === 0 && (
+                <span className="muted">
+                  Nobody in this company has completed the assessment yet.
+                </span>
+              )}
+              {completedEligible.length > 0 &&
+                visibleExcludedCandidates.length === 0 && (
+                  <span className="muted">No one matches that filter.</span>
+                )}
+              {visibleExcludedCandidates.map((p) => {
+                const excluded = excludedIds.includes(p.id);
+                const pinned = pinnedIds.includes(p.id);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => toggleExclude(p.id)}
+                    className={`chip ${excluded ? "chip-warning" : "chip-muted"}`}
+                    title={
+                      pinned
+                        ? "Currently required. Excluding will move them out of the required list."
+                        : (p.position ?? "")
+                    }
+                    style={{
+                      cursor: "pointer",
+                      opacity: pinned ? 0.5 : 1,
+                      textDecoration: excluded ? "line-through" : "none",
+                    }}
                   >
                     {p.first_name} {p.last_name}
                   </button>

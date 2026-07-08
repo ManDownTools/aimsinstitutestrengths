@@ -63,8 +63,13 @@ export default async function TeamsListPage() {
 
   return (
     <>
+      <TopNav />
+      {backHref && backLabel && (
+        <div className="container-wide">
+          <AdminBackLink href={backHref} label={backLabel} />
+        </div>
+      )}
       <div className="hero-shell">
-        <TopNav />
         <div className="hero-body">
           <div className="container-wide">
             <div className="eyebrow">Team builder</div>
@@ -79,9 +84,6 @@ export default async function TeamsListPage() {
         </div>
       </div>
       <div className="container-wide content-shell">
-        {backHref && backLabel && (
-          <AdminBackLink href={backHref} label={backLabel} />
-        )}
         <div className="stack-5">
           <section className="card">
             <div className="card-header">
