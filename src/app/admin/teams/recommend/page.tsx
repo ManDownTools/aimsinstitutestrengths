@@ -47,9 +47,6 @@ export default async function RecommendRoute() {
     <>
       <div className="hero-shell">
         <TopNav />
-        <div className="container-wide">
-          <AdminBackLink href={backHref} label={backLabel} />
-        </div>
         <div className="hero-body">
           <div className="container-wide">
             <div className="eyebrow">Team builder</div>
@@ -60,6 +57,7 @@ export default async function RecommendRoute() {
               roster and explains the reasoning. Nothing saves until you
               confirm. The final call is yours.
             </p>
+            <AdminBackLink href={backHref} label={backLabel} />
           </div>
         </div>
       </div>

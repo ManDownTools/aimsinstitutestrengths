@@ -149,9 +149,6 @@ export default async function TeamDetailPage({
     <>
       <div className="hero-shell">
         <TopNav />
-        <div className="container-wide">
-          <AdminBackLink href={backHref} label={backLabel} />
-        </div>
         <div className="hero-body">
           <div className="container-wide">
             <div className="eyebrow">Team builder</div>
@@ -161,6 +158,7 @@ export default async function TeamDetailPage({
               This shows how energy configures for this mission. It's not a
               ranking, and the final call is yours.
             </p>
+            <AdminBackLink href={backHref} label={backLabel} />
           </div>
         </div>
       </div>
